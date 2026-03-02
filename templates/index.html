@@ -1,679 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EventFlow</title>
-  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #f5f0e8;
-      --surface: #ffffff;
-      --border: #e0d8cc;
-      --accent: #ff4d00;
-      --accent-dark: #cc3d00;
-      --dark: #1a1410;
-      --text: #2d2520;
-      --muted: #9a8f85;
-      --success: #1a7a4a;
-      --danger: #cc2200;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Cabinet Grotesk', sans-serif;
-      min-height: 100vh;
-    }
-
-    /* HEADER */
-    header {
-      background: var(--dark);
-      padding: 0 32px;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 64px; position: sticky; top: 0; z-index: 100;
-    }
-    .logo {
-      font-family: 'Clash Display', sans-serif;
-      font-size: 1.4rem; font-weight: 700;
-      color: #fff; letter-spacing: -0.5px;
-    }
-    .logo span { color: var(--accent); }
-
-    .mode-toggle {
-      display: flex; background: rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 4px; gap: 4px;
-    }
-    .mode-btn {
-      padding: 6px 20px; border: none; border-radius: 6px;
-      font-family: 'Clash Display', sans-serif;
-      font-size: 0.82rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; color: rgba(255,255,255,0.5);
-      background: none;
-    }
-    .mode-btn.active { background: var(--accent); color: #fff; }
-
-    /* LAYOUT */
-    .main { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
-
-    .view { display: none; }
-    .view.active { display: block; animation: fadeUp 0.3s ease; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-
-    /* SECTION HEADER */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .section-title {
-      font-family: 'Clash Display', sans-serif;
-      font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;
-    }
-    .section-title span { color: var(--accent); }
-
-    /* BUTTONS */
-    .btn {
-      padding: 10px 22px; border: none; border-radius: 8px;
-      font-family: 'Clash Display', sans-serif;
-      font-size: 0.85rem; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
-    .btn-dark { background: var(--dark); color: #fff; }
-    .btn-dark:hover { opacity: 0.85; }
-    .btn-sm { padding: 6px 14px; font-size: 0.78rem; }
-    .btn-ghost { background: none; border: 1.5px solid var(--border); color: var(--muted); }
-    .btn-ghost:hover { border-color: var(--text); color: var(--text); }
-    .btn-danger { background: rgba(204,34,0,0.1); color: var(--danger); border: 1px solid rgba(204,34,0,0.2); }
-    .btn-danger:hover { background: rgba(204,34,0,0.2); }
-    .btn-edit { background: rgba(26,26,26,0.08); color: var(--text); border: 1px solid var(--border); }
-    .btn-edit:hover { background: rgba(26,26,26,0.15); }
-
-    /* STATS (admin) */
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
-    .stat-card {
-      background: var(--surface); border: 1.5px solid var(--border);
-      border-radius: 14px; padding: 20px;
-    }
-    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
-    .stat-val { font-family: 'Clash Display', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--accent); }
-
-    /* EVENT CARDS (user) */
-    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .event-card {
-      background: var(--surface); border: 1.5px solid var(--border);
-      border-radius: 16px; overflow: hidden;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .event-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-    .card-top { padding: 20px; border-bottom: 1px solid var(--border); }
-    .card-type-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .badge {
-      display: inline-block; padding: 3px 10px; border-radius: 20px;
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
-    }
-    .badge-conference { background: #e8f0ff; color: #2d5be3; }
-    .badge-concert { background: #fff0e8; color: var(--accent); }
-    .badge-hackathon { background: #e8fff0; color: var(--success); }
-    .badge-seminar { background: #fff8e8; color: #b06000; }
-    .badge-other { background: var(--border); color: var(--muted); }
-    .price { font-family: 'Clash Display', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--accent); }
-    .free { color: var(--success); }
-    .card-title { font-family: 'Clash Display', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
-    .card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
-    .card-body { padding: 16px 20px; }
-    .meta-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-    .meta-item { display: flex; gap: 8px; font-size: 0.8rem; color: var(--muted); align-items: center; }
-    .seats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .seats-text { font-size: 0.78rem; color: var(--muted); }
-    .seats-num { font-family: 'Clash Display', sans-serif; font-size: 0.85rem; font-weight: 600; }
-    .seats-num.low { color: var(--danger); }
-    .seats-num.ok { color: var(--success); }
-    .progress { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
-    .progress-bar { height: 100%; background: var(--accent); border-radius: 2px; }
-    .btn-book { width: 100%; }
-    .sold-out { width: 100%; padding: 10px; text-align: center; border-radius: 8px; background: rgba(204,34,0,0.08); color: var(--danger); font-family: 'Clash Display', sans-serif; font-size: 0.85rem; font-weight: 600; }
-
-    /* FILTER CHIPS */
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-    .chip {
-      padding: 6px 16px; border-radius: 20px;
-      border: 1.5px solid var(--border); background: none;
-      color: var(--muted); font-family: 'Cabinet Grotesk', sans-serif;
-      font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
-    }
-    .chip.active { background: var(--dark); border-color: var(--dark); color: #fff; }
-
-    /* ADMIN TABLE */
-    .table-wrap {
-      background: var(--surface); border: 1.5px solid var(--border);
-      border-radius: 14px; overflow: hidden; margin-bottom: 32px;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      padding: 12px 16px; text-align: left;
-      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted); border-bottom: 1px solid var(--border);
-      font-family: 'Clash Display', sans-serif; background: var(--bg);
-    }
-    td { padding: 13px 16px; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--bg); }
-    .seats-bar { width: 60px; height: 5px; background: var(--border); border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 6px; overflow: hidden; }
-    .seats-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
-
-    /* BOOKINGS TABLE */
-    .booking-ref { font-family: 'Clash Display', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--accent); }
-
-    /* MODAL */
-    .overlay { position: fixed; inset: 0; background: rgba(26,20,16,0.6); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
-    .overlay.open { display: flex; }
-    .modal {
-      background: var(--surface); border: 1.5px solid var(--border);
-      border-radius: 20px; padding: 32px;
-      width: 100%; max-width: 580px; max-height: 92vh; overflow-y: auto;
-      animation: fadeUp 0.25s ease;
-    }
-    .modal h2 { font-family: 'Clash Display', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 22px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .fg { display: flex; flex-direction: column; gap: 5px; }
-    .fg.full { grid-column: 1 / -1; }
-    label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 600; }
-    input, select, textarea {
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 8px; padding: 9px 12px;
-      color: var(--text); font-family: 'Cabinet Grotesk', sans-serif;
-      font-size: 0.9rem; outline: none; transition: border-color 0.2s; width: 100%;
-    }
-    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-    input::placeholder, textarea::placeholder { color: var(--muted); }
-    textarea { resize: vertical; min-height: 70px; }
-    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
-
-    /* BOOKING MODAL */
-    .participant-block { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-    .participant-block h4 { font-family: 'Clash Display', sans-serif; font-size: 0.8rem; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-    /* CONFIRMATION */
-    .confirm-box { text-align: center; padding: 20px 0; }
-    .confirm-icon { font-size: 4rem; margin-bottom: 16px; }
-    .confirm-box h2 { font-family: 'Clash Display', sans-serif; font-size: 1.6rem; margin-bottom: 8px; }
-    .confirm-box p { color: var(--muted); margin-bottom: 20px; font-size: 0.9rem; }
-    .ref-box {
-      font-family: 'Clash Display', sans-serif; font-size: 1.8rem; font-weight: 700;
-      color: var(--accent); background: #fff5f2; border: 2px dashed var(--accent);
-      padding: 14px 28px; border-radius: 12px; display: inline-block; margin-bottom: 24px;
-    }
-
-    /* EMPTY */
-    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty .icon { font-size: 3rem; margin-bottom: 12px; }
-
-    /* TOAST */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px; z-index: 400;
-      background: var(--dark); color: #fff;
-      padding: 13px 20px; border-radius: 10px;
-      font-size: 0.875rem; display: none; max-width: 320px;
-    }
-    .toast.show { display: block; animation: fadeUp 0.3s ease; }
-    .toast.success { border-left: 4px solid var(--success); }
-    .toast.error { border-left: 4px solid var(--danger); }
-  </style>
+    <meta charset="UTF-8"><title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background-color: #fdfaf5; font-family: 'Inter', sans-serif; }</style>
 </head>
 <body>
-
-<!-- HEADER -->
-<header>
-  <div class="logo">Event<span>Flow</span></div>
-  <div class="mode-toggle">
-    <button class="mode-btn active" onclick="setMode('user', this)">👤 User</button>
-    <button class="mode-btn" onclick="setMode('admin', this)">⚙️ Admin</button>
-  </div>
-</header>
-
-<div class="main">
-
-  <!-- ══════════════ USER VIEW ══════════════ -->
-  <div class="view active" id="view-user">
-
-    <!-- Browse Events -->
-    <div id="user-browse">
-      <div class="section-header">
-        <div class="section-title">Browse <span>Events</span></div>
-      </div>
-      <div class="filter-row">
-        <button class="chip active" onclick="filterEvents('all', this)">All</button>
-        <button class="chip" onclick="filterEvents('conference', this)">Conference</button>
-        <button class="chip" onclick="filterEvents('concert', this)">Concert</button>
-        <button class="chip" onclick="filterEvents('hackathon', this)">Hackathon</button>
-        <button class="chip" onclick="filterEvents('seminar', this)">Seminar</button>
-      </div>
-      <div class="events-grid" id="events-grid">
-        <div class="empty"><div class="icon">🗓️</div><p>Loading events...</p></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ══════════════ ADMIN VIEW ══════════════ -->
-  <div class="view" id="view-admin">
-
-    <!-- Admin Tabs -->
-    <div style="display:flex;gap:8px;margin-bottom:28px">
-      <button class="btn btn-dark" id="atab-events" onclick="adminTab('events')">🗓️ Events</button>
-      <button class="btn btn-ghost" id="atab-bookings" onclick="adminTab('bookings')">🎟️ Bookings</button>
-    </div>
-
-    <!-- Events Tab -->
-    <div id="admin-events-tab">
-      <div class="stats-row" id="admin-stats">
-        <div class="stat-card"><div class="stat-label">Total Events</div><div class="stat-val" id="s-events">—</div></div>
-        <div class="stat-card"><div class="stat-label">Total Bookings</div><div class="stat-val" id="s-bookings">—</div></div>
-        <div class="stat-card"><div class="stat-label">Seats Filled</div><div class="stat-val" id="s-seats">—</div></div>
-      </div>
-      <div class="section-header">
-        <div class="section-title">All <span>Events</span></div>
-        <button class="btn btn-primary" onclick="openCreateModal()">+ Create Event</button>
-      </div>
-      <div class="table-wrap" id="admin-events-table">
-        <div class="empty"><div class="icon">🗓️</div><p>No events yet</p></div>
-      </div>
-    </div>
-
-    <!-- Bookings Tab -->
-    <div id="admin-bookings-tab" style="display:none">
-      <div class="section-header">
-        <div class="section-title">All <span>Bookings</span></div>
-      </div>
-      <div class="table-wrap" id="admin-bookings-table">
-        <div class="empty"><div class="icon">🎟️</div><p>No bookings yet</p></div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════ CREATE / EDIT EVENT MODAL ══════ -->
-<div class="overlay" id="event-modal">
-  <div class="modal">
-    <h2 id="modal-title">Create Event</h2>
-    <div class="form-grid">
-      <div class="fg full"><label>Event Title *</label><input id="f-title" placeholder="e.g. TechConf 2025"/></div>
-      <div class="fg"><label>Type *</label>
-        <select id="f-type">
-          <option value="conference">Conference</option>
-          <option value="concert">Concert</option>
-          <option value="hackathon">Hackathon</option>
-          <option value="seminar">Seminar</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="fg"><label>Total Seats *</label><input type="number" id="f-seats" placeholder="100" min="1"/></div>
-      <div class="fg"><label>Date</label><input type="date" id="f-date"/></div>
-      <div class="fg"><label>Time</label><input type="time" id="f-time"/></div>
-      <div class="fg full"><label>Venue</label><input id="f-venue" placeholder="e.g. Mumbai Convention Centre"/></div>
-      <div class="fg full"><label>Description</label><textarea id="f-desc" placeholder="Brief description..."></textarea></div>
-      <div class="fg"><label>Food Options</label><input id="f-food" placeholder="Veg, Non-Veg, Vegan"/></div>
-      <div class="fg"><label>Price (₹) — 0 for free</label><input type="number" id="f-price" placeholder="0" min="0"/></div>
-      <div class="fg"><label>Stay Available?</label>
-        <select id="f-stay"><option value="0">No</option><option value="1">Yes</option></select>
-      </div>
-      <div class="fg full"><label>Topics / Agenda</label><textarea id="f-topics" placeholder="AI, Web3, Cloud Computing..."></textarea></div>
-      <div class="fg full"><label>Guests</label><input id="f-guests" placeholder="Sundar Pichai, Satya Nadella..."/></div>
-      <div class="fg full"><label>Speakers</label><input id="f-speakers" placeholder="Dr. Anjali Sharma, Prof. Ravi Kumar..."/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('event-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ BOOKING MODAL ══════ -->
-<div class="overlay" id="booking-modal">
-  <div class="modal" id="booking-modal-inner"></div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-  let allEvents = [];
-  let allBookings = [];
-  let editingId = null;
-  let bookingEvent = null;
-
-  // ── MODE TOGGLE ─────────────────────────────────────────
-  function setMode(mode, btn) {
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + mode).classList.add('active');
-    if (mode === 'admin') loadAdmin();
-    if (mode === 'user') loadEvents();
-  }
-
-  // ── ADMIN TABS ──────────────────────────────────────────
-  function adminTab(tab) {
-    document.getElementById('admin-events-tab').style.display = tab === 'events' ? 'block' : 'none';
-    document.getElementById('admin-bookings-tab').style.display = tab === 'bookings' ? 'block' : 'none';
-    document.getElementById('atab-events').className = 'btn ' + (tab === 'events' ? 'btn-dark' : 'btn-ghost');
-    document.getElementById('atab-bookings').className = 'btn ' + (tab === 'bookings' ? 'btn-dark' : 'btn-ghost');
-    if (tab === 'bookings') loadBookings();
-  }
-
-  // ── TOAST ───────────────────────────────────────────────
-  function toast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show ' + type;
-    setTimeout(() => t.classList.remove('show'), 3500);
-  }
-
-  // ── MODAL ───────────────────────────────────────────────
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-  // ── BADGE ───────────────────────────────────────────────
-  function badge(type) {
-    return `<span class="badge badge-${type || 'other'}">${type || 'other'}</span>`;
-  }
-
-  // ══════════════ USER FUNCTIONS ══════════════════════════
-
-  async function loadEvents() {
-    const res = await fetch('/api/events');
-    allEvents = await res.json();
-    renderEvents(allEvents);
-  }
-
-  function filterEvents(type, btn) {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    renderEvents(type === 'all' ? allEvents : allEvents.filter(e => e.type === type));
-  }
-
-  function renderEvents(events) {
-    const grid = document.getElementById('events-grid');
-    if (!events.length) {
-      grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="icon">🗓️</div><p>No events found</p></div>';
-      return;
-    }
-    grid.innerHTML = events.map(e => {
-      const pct = Math.round((1 - e.available_seats / e.total_seats) * 100);
-      const soldOut = e.available_seats === 0;
-      const low = !soldOut && e.available_seats <= 10;
-      return `
-        <div class="event-card">
-          <div class="card-top">
-            <div class="card-type-row">
-              ${badge(e.type)}
-              <span class="price ${e.price > 0 ? '' : 'free'}">${e.price > 0 ? '₹' + e.price : 'FREE'}</span>
-            </div>
-            <div class="card-title">${e.title}</div>
-            ${e.description ? `<div class="card-desc">${e.description.slice(0, 100)}${e.description.length > 100 ? '...' : ''}</div>` : ''}
-          </div>
-          <div class="card-body">
-            <div class="meta-list">
-              ${e.date ? `<div class="meta-item">📅 ${e.date}${e.time ? ' · ' + e.time : ''}</div>` : ''}
-              ${e.venue ? `<div class="meta-item">📍 ${e.venue}</div>` : ''}
-              ${e.speakers ? `<div class="meta-item">🎤 ${e.speakers.split(',').slice(0,2).join(', ')}</div>` : ''}
-              ${e.food_options ? `<div class="meta-item">🍽️ ${e.food_options}</div>` : ''}
-              ${e.stay_available ? `<div class="meta-item">🏨 Stay available</div>` : ''}
-              ${e.topics ? `<div class="meta-item">📌 ${e.topics.split(',').slice(0,3).join(', ')}</div>` : ''}
-            </div>
-            <div class="seats-row">
-              <span class="seats-text">Available Seats</span>
-              <span class="seats-num ${soldOut ? 'low' : low ? 'low' : 'ok'}">
-                ${soldOut ? 'SOLD OUT' : low ? `⚠️ ${e.available_seats} left` : `${e.available_seats} / ${e.total_seats}`}
-              </span>
-            </div>
-            <div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div>
-            ${soldOut
-              ? `<div class="sold-out">Sold Out</div>`
-              : `<button class="btn btn-primary btn-book" onclick="openBooking(${e.id})">Book Now →</button>`
-            }
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function openBooking(eventId) {
-    bookingEvent = allEvents.find(e => e.id === eventId);
-    if (!bookingEvent) return;
-    renderBookingForm(1);
-    document.getElementById('booking-modal').classList.add('open');
-  }
-
-  function renderBookingForm(count) {
-    const e = bookingEvent;
-    const maxPax = Math.min(e.available_seats, 10);
-    const opts = Array.from({length: maxPax}, (_, i) =>
-      `<option value="${i+1}" ${i+1===count?'selected':''}>${i+1}</option>`).join('');
-
-    const paxForms = Array.from({length: count}, (_, i) => `
-      <div class="participant-block">
-        <h4>Participant ${i + 1}</h4>
-        <div class="mini-grid">
-          <div class="fg"><label>Name *</label><input id="pn-${i}" placeholder="Full name"/></div>
-          <div class="fg"><label>Email *</label><input type="email" id="pe-${i}" placeholder="Email"/></div>
-          <div class="fg"><label>Phone</label><input id="pp-${i}" placeholder="Phone number"/></div>
-          <div class="fg"><label>Age</label><input type="number" id="pa-${i}" placeholder="Age" min="1"/></div>
+    <header class="bg-[#1a1512] p-4 flex justify-between items-center px-10 text-white shadow-lg">
+        <h1 class="text-2xl font-bold">Event<span class="text-[#ff5722]">Flow</span></h1>
+        <div class="flex items-center space-x-4">
+            <span class="bg-zinc-800 px-3 py-1 rounded-full text-xs font-bold uppercase">{{ role }}</span>
+            <a href="/login" class="text-gray-400 text-sm">Logout</a>
         </div>
-      </div>`).join('');
+    </header>
 
-    document.getElementById('booking-modal-inner').innerHTML = `
-      <h2>Book — ${e.title}</h2>
-      <div style="margin-bottom:16px">${badge(e.type)} ${e.date ? `<span style="color:var(--muted);font-size:0.82rem;margin-left:8px">📅 ${e.date}</span>` : ''}</div>
-      <div class="fg" style="margin-bottom:16px">
-        <label>Number of Participants</label>
-        <select onchange="renderBookingForm(parseInt(this.value))">${opts}</select>
-      </div>
-      ${paxForms}
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('booking-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmBooking(${count})">
-          Confirm${e.price > 0 ? ` · ₹${e.price * count}` : ' — Free'}
-        </button>
-      </div>`;
-  }
+    <main class="p-10 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-5xl font-black text-gray-800 uppercase">{% if role == 'admin' %}Manage{% else %}Our{% endif %} <span class="text-[#ff5722]">Events</span></h2>
+            {% if role == 'admin' %}
+            <button onclick="document.getElementById('admin-modal').classList.remove('hidden')" class="bg-[#ff5722] text-white px-8 py-4 rounded-2xl font-black shadow-xl hover:scale-105 transition">+ Create Event</button>
+            {% endif %}
+        </div>
 
-  async function confirmBooking(count) {
-    const participants = [];
-    for (let i = 0; i < count; i++) {
-      const name = document.getElementById(`pn-${i}`)?.value.trim();
-      const email = document.getElementById(`pe-${i}`)?.value.trim();
-      if (!name || !email) return toast('Fill in name & email for all participants', 'error');
-      participants.push({
-        name, email,
-        phone: document.getElementById(`pp-${i}`)?.value || '',
-        age: document.getElementById(`pa-${i}`)?.value || ''
-      });
-    }
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for event in events %}
+            <div class="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
+                <div class="flex justify-between mb-4">
+                    <span class="text-[10px] font-bold uppercase bg-orange-50 text-[#ff5722] px-3 py-1 rounded-full">{{ event.type }}</span>
+                    <p class="text-gray-400 text-xs">{{ event.date }}</p>
+                </div>
+                <h3 class="text-2xl font-bold mb-1">{{ event.title }}</h3>
+                <p class="text-gray-500 text-sm mb-6 font-medium">📍 {{ event.venue }}</p>
+                <div class="flex justify-between items-center border-t pt-6">
+                    <div><p class="text-[10px] text-gray-400 font-bold uppercase">Seats</p><p class="font-bold text-lg">{{ event.available_seats }} / {{ event.total_seats }}</p></div>
+                    {% if role == 'user' %}
+                    <button onclick="openBookingPopup('{{ event.id }}', '{{ event.title }}', '{{ event.type }}', '{{ event.description }}', '{{ event.venue }}', '{{ event.date }}', '{{ event.time }}', '{{ event.speakers }}', '{{ event.price }}')" class="bg-[#ff5722] text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg">Book Now</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event_id: bookingEvent.id,
-          participants: count,
-          participant_details: JSON.stringify(participants)
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) return toast(data.detail, 'error');
+        {% if role == 'admin' and bookings %}
+        <div class="mt-20 bg-white p-8 rounded-[32px] border">
+            <h3 class="text-2xl font-black mb-6">Attendee <span class="text-[#ff5722]">List</span></h3>
+            <table class="w-full text-left">
+                <tr class="text-xs text-gray-400 uppercase font-bold border-b">
+                    <th class="pb-4">Event</th><th class="pb-4">Ref</th><th class="pb-4">Attendee Info</th>
+                </tr>
+                {% for b in bookings %}
+                <tr class="border-b last:border-0 text-sm"><td class="py-4 font-bold">{{ b.event_title }}</td><td class="py-4 text-[#ff5722] font-mono">{{ b.booking_ref }}</td><td class="py-4">{{ b.participant_details }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+    </main>
 
-      document.getElementById('booking-modal-inner').innerHTML = `
-        <div class="confirm-box">
-          <div class="confirm-icon">🎉</div>
-          <h2>You're Booked!</h2>
-          <p>Your spot at <strong>${data.event_title}</strong> is confirmed.<br>Save your reference number below.</p>
-          <div class="ref-box">${data.booking_ref}</div>
-          <button class="btn btn-primary" style="width:100%" onclick="closeModal('booking-modal')">Done</button>
-        </div>`;
+    <div id="admin-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white p-10 rounded-[40px] w-full max-w-4xl my-10 shadow-2xl">
+            <h2 class="text-3xl font-black mb-8">New <span class="text-[#ff5722]">Event</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <input type="text" id="ev-title" placeholder="Event Title" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <input type="text" id="ev-type" placeholder="Event Type" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <input type="text" id="ev-venue" placeholder="Venue Location" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <div class="flex space-x-2"><input type="date" id="ev-date" class="w-1/2 p-4 bg-gray-50 border rounded-2xl"><input type="time" id="ev-time" class="w-1/2 p-4 bg-gray-50 border rounded-2xl"></div>
+                </div>
+                <div class="space-y-4">
+                    <textarea id="ev-desc" placeholder="Event Description" class="w-full p-4 bg-gray-50 border rounded-2xl h-24"></textarea>
+                    <input type="text" id="ev-guests" placeholder="Chief Guests" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <input type="text" id="ev-speakers" placeholder="Speakers" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <div class="flex space-x-2">
+                        <input type="number" id="ev-seats" placeholder="Seats" class="w-1/2 p-4 bg-gray-50 border rounded-2xl">
+                        <input type="number" id="ev-price" placeholder="Price" class="w-1/2 p-4 bg-gray-50 border rounded-2xl">
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-4 mt-8">
+                <button onclick="saveEvent()" class="flex-1 bg-[#ff5722] text-white py-4 rounded-2xl font-black">Publish</button>
+                <button onclick="document.getElementById('admin-modal').classList.add('hidden')" class="flex-1 bg-gray-100 py-4 rounded-2xl font-black text-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-      loadEvents();
-    } catch {
-      toast('Something went wrong. Try again.', 'error');
-    }
-  }
+    <div id="booking-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-[40px] w-full max-w-4xl flex flex-col md:flex-row overflow-hidden shadow-2xl">
+            <div class="md:w-1/2 bg-[#1a1512] p-10 text-white">
+                <span id="p-type" class="bg-[#ff5722] text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
+                <h2 id="p-title" class="text-3xl font-black mt-4 mb-4"></h2>
+                <div class="space-y-4 text-sm font-medium"><p>📍 <span id="p-venue"></span></p><p>📅 <span id="p-date"></span></p><p>💰 <span id="p-price"></span></p></div>
+            </div>
+            <div class="md:w-1/2 p-10">
+                <h3 class="text-xl font-bold mb-6 text-gray-800">Registration Info</h3>
+                <div class="space-y-4">
+                    <input type="hidden" id="p-id">
+                    <input type="text" id="u-name" placeholder="Full Name" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-orange-500">
+                    <input type="text" id="u-phone" placeholder="Phone Number" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-orange-500">
+                    <input type="email" id="u-email" placeholder="Email Address" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-orange-500">
+                    <select id="u-food" class="w-full p-4 bg-gray-50 border rounded-2xl text-gray-500 outline-none focus:border-orange-500">
+                        <option value="Veg">Vegetarian</option><option value="Non-Veg">Non-Vegetarian</option><option value="None">No Food</option>
+                    </select>
+                    <button onclick="submitBooking()" class="w-full bg-[#ff5722] text-white py-4 rounded-2xl font-black mt-4 shadow-lg active:scale-95 transition">Confirm Booking</button>
+                    <button onclick="document.getElementById('booking-modal').classList.add('hidden')" class="w-full text-gray-400 font-bold py-2">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  // ══════════════ ADMIN FUNCTIONS ═════════════════════════
+    <script>
+        async function saveEvent() {
+            const data = {
+                title: document.getElementById('ev-title').value,
+                type: document.getElementById('ev-type').value,
+                description: document.getElementById('ev-desc').value,
+                venue: document.getElementById('ev-venue').value,
+                date: document.getElementById('ev-date').value,
+                time: document.getElementById('ev-time').value,
+                total_seats: parseInt(document.getElementById('ev-seats').value),
+                price: parseFloat(document.getElementById('ev-price').value || 0),
+                guests: document.getElementById('ev-guests').value,
+                speakers: document.getElementById('ev-speakers').value,
+                stay_available: 0, topics: ""
+            };
+            const res = await fetch('/api/events', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if(res.ok) location.reload();
+        }
 
-  async function loadAdmin() {
-    const [evRes, bkRes] = await Promise.all([
-      fetch('/api/events'),
-      fetch('/api/bookings')
-    ]);
-    allEvents = await evRes.json();
-    allBookings = await bkRes.json();
+        function openBookingPopup(id, title, type, desc, venue, date, time, speakers, price) {
+            document.getElementById('p-id').value = id;
+            document.getElementById('p-title').innerText = title;
+            document.getElementById('p-type').innerText = type;
+            document.getElementById('p-venue').innerText = venue;
+            document.getElementById('p-date').innerText = date + " at " + time;
+            document.getElementById('p-price').innerText = price > 0 ? "$" + price : "FREE";
+            document.getElementById('booking-modal').classList.remove('hidden');
+        }
 
-    // Stats
-    document.getElementById('s-events').textContent = allEvents.length;
-    document.getElementById('s-bookings').textContent = allBookings.length;
-    const total = allEvents.reduce((a, e) => a + e.total_seats, 0);
-    const avail = allEvents.reduce((a, e) => a + e.available_seats, 0);
-    document.getElementById('s-seats').textContent = `${total - avail}/${total}`;
-
-    renderAdminEvents();
-  }
-
-  function renderAdminEvents() {
-    const wrap = document.getElementById('admin-events-table');
-    if (!allEvents.length) {
-      wrap.innerHTML = '<div class="empty"><div class="icon">🗓️</div><p>No events yet. Create one!</p></div>';
-      return;
-    }
-    wrap.innerHTML = `
-      <table>
-        <thead><tr>
-          <th>Title</th><th>Type</th><th>Date</th><th>Venue</th><th>Seats</th><th>Price</th><th>Actions</th>
-        </tr></thead>
-        <tbody>
-          ${allEvents.map(e => `
-            <tr>
-              <td><strong>${e.title}</strong></td>
-              <td>${badge(e.type)}</td>
-              <td>${e.date || '—'}</td>
-              <td>${e.venue || '—'}</td>
-              <td>
-                <span class="seats-bar"><span class="seats-bar-fill" style="width:${Math.round((1-e.available_seats/e.total_seats)*100)}%"></span></span>
-                ${e.available_seats}/${e.total_seats}
-              </td>
-              <td>${e.price > 0 ? '₹' + e.price : 'Free'}</td>
-              <td style="display:flex;gap:6px">
-                <button class="btn btn-sm btn-edit" onclick="openEditModal(${e.id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteEvent(${e.id})">Delete</button>
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
-  }
-
-  async function loadBookings() {
-    const res = await fetch('/api/bookings');
-    allBookings = await res.json();
-    const wrap = document.getElementById('admin-bookings-table');
-    if (!allBookings.length) {
-      wrap.innerHTML = '<div class="empty"><div class="icon">🎟️</div><p>No bookings yet</p></div>';
-      return;
-    }
-    wrap.innerHTML = `
-      <table>
-        <thead><tr><th>Ref</th><th>Event</th><th>Participants</th><th>Date</th><th>Status</th></tr></thead>
-        <tbody>
-          ${allBookings.map(b => `
-            <tr>
-              <td><span class="booking-ref">${b.booking_ref}</span></td>
-              <td>${b.event_title}<br><small style="color:var(--muted)">${b.type} · ${b.venue || 'N/A'}</small></td>
-              <td>${b.participants}</td>
-              <td>${b.created_at?.split('T')[0] || b.created_at?.split(' ')[0] || '—'}</td>
-              <td><span class="badge badge-hackathon">${b.status}</span></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
-  }
-
-  // ── CREATE / EDIT ────────────────────────────────────────
-  function openCreateModal() {
-    editingId = null;
-    document.getElementById('modal-title').textContent = 'Create Event';
-    ['f-title','f-date','f-time','f-venue','f-desc','f-food','f-topics','f-guests','f-speakers'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('f-type').value = 'conference';
-    document.getElementById('f-seats').value = '';
-    document.getElementById('f-price').value = 0;
-    document.getElementById('f-stay').value = '0';
-    document.getElementById('event-modal').classList.add('open');
-  }
-
-  function openEditModal(id) {
-    const e = allEvents.find(ev => ev.id === id);
-    if (!e) return;
-    editingId = id;
-    document.getElementById('modal-title').textContent = 'Edit Event';
-    document.getElementById('f-title').value = e.title || '';
-    document.getElementById('f-type').value = e.type || 'conference';
-    document.getElementById('f-seats').value = e.total_seats || '';
-    document.getElementById('f-date').value = e.date || '';
-    document.getElementById('f-time').value = e.time || '';
-    document.getElementById('f-venue').value = e.venue || '';
-    document.getElementById('f-desc').value = e.description || '';
-    document.getElementById('f-food').value = e.food_options || '';
-    document.getElementById('f-price').value = e.price || 0;
-    document.getElementById('f-stay').value = String(e.stay_available || 0);
-    document.getElementById('f-topics').value = e.topics || '';
-    document.getElementById('f-guests').value = e.guests || '';
-    document.getElementById('f-speakers').value = e.speakers || '';
-    document.getElementById('event-modal').classList.add('open');
-  }
-
-  async function saveEvent() {
-    const body = {
-      title: document.getElementById('f-title').value.trim(),
-      type: document.getElementById('f-type').value,
-      total_seats: parseInt(document.getElementById('f-seats').value),
-      date: document.getElementById('f-date').value,
-      time: document.getElementById('f-time').value,
-      venue: document.getElementById('f-venue').value,
-      description: document.getElementById('f-desc').value,
-      food_options: document.getElementById('f-food').value,
-      price: parseFloat(document.getElementById('f-price').value) || 0,
-      stay_available: parseInt(document.getElementById('f-stay').value),
-      topics: document.getElementById('f-topics').value,
-      guests: document.getElementById('f-guests').value,
-      speakers: document.getElementById('f-speakers').value,
-    };
-
-    if (!body.title) return toast('Event title is required', 'error');
-    if (!body.total_seats || body.total_seats < 1) return toast('Total seats must be at least 1', 'error');
-
-    const url = editingId ? `/api/events/${editingId}` : '/api/events';
-    const method = editingId ? 'PUT' : 'POST';
-
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const data = await res.json();
-    if (!res.ok) return toast(data.detail, 'error');
-
-    toast(data.message);
-    closeModal('event-modal');
-    loadAdmin();
-  }
-
-  async function deleteEvent(id) {
-    if (!confirm('Delete this event? This cannot be undone.')) return;
-    const res = await fetch(`/api/events/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-    toast(data.message);
-    loadAdmin();
-  }
-
-  // Initial load
-  loadEvents();
-</script>
+        async function submitBooking() {
+            const data = {
+                event_id: parseInt(document.getElementById('p-id').value),
+                name: document.getElementById('u-name').value, 
+                phone: document.getElementById('u-phone').value,
+                email: document.getElementById('u-email').value, 
+                food_preference: document.getElementById('u-food').value
+            };
+            if(!data.name || !data.email) return alert("Fill Name and Email!");
+            const res = await fetch('/api/book', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if(res.ok) { alert("Booked Successfully!"); location.reload(); }
+        }
+    </script>
 </body>
 </html>

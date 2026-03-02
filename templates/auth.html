@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>EventFlow Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#fdfaf5] font-sans flex items-center justify-center min-h-screen">
+    <div class="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md border border-gray-100">
+        <h1 class="text-3xl font-black text-center mb-8">Event<span class="text-[#ff5722]">Flow</span></h1>
+        <div class="flex mb-6 bg-gray-100 p-1 rounded-2xl">
+            <button id="t-login" class="flex-1 py-3 rounded-xl font-bold bg-white shadow-sm">Login</button>
+            <button id="t-sign" class="flex-1 py-3 rounded-xl font-bold text-gray-400">Signup</button>
+        </div>
+        <form id="f-auth" class="space-y-4">
+            <input type="text" id="username" placeholder="Username" class="hidden w-full p-4 bg-gray-50 border rounded-2xl outline-none">
+            <input type="email" id="email" placeholder="Email" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none" required>
+            <input type="password" id="password" placeholder="Password" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none" required>
+            <select id="role" class="hidden w-full p-4 bg-gray-50 border rounded-2xl outline-none">
+                <option value="user">User</option><option value="admin">Admin</option>
+            </select>
+            <button type="submit" class="w-full bg-[#ff5722] text-white py-4 rounded-2xl font-black text-lg">Continue</button>
+        </form>
+    </div>
+    <script>
+        let mode = 'login';
+        const tLogin = document.getElementById('t-login'), tSign = document.getElementById('t-sign');
+        const uInp = document.getElementById('username'), rInp = document.getElementById('role');
+
+        tSign.onclick = () => { mode = 'signup'; uInp.classList.remove('hidden'); rInp.classList.remove('hidden'); tSign.className = 'flex-1 py-3 rounded-xl font-bold bg-white shadow-sm'; tLogin.className = 'flex-1 py-3 rounded-xl font-bold text-gray-400'; };
+        tLogin.onclick = () => { mode = 'login'; uInp.classList.add('hidden'); rInp.classList.add('hidden'); tLogin.className = 'flex-1 py-3 rounded-xl font-bold bg-white shadow-sm'; tSign.className = 'flex-1 py-3 rounded-xl font-bold text-gray-400'; };
+
+        document.getElementById('f-auth').onsubmit = async (e) => {
+            e.preventDefault();
+            const url = mode === 'login' ? '/api/login' : '/api/signup';
+            const body = { email: document.getElementById('email').value, password: document.getElementById('password').value };
+            if(mode === 'signup') { body.username = uInp.value; body.role = rInp.value; }
+            const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+            const data = await res.json();
+            if(res.ok) window.location.href = `/?role=${data.role}`;
+            else alert(data.detail);
+        };
+    </script>
+</body>
+</html>
