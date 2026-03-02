@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Lineup 2026</title>
+    <style>
+        :root {
+            --primary: #0984e3;
+            --accent: #6c5ce7;
+            --dark: #2d3436;
+            --light: #f9f9f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+
+        .conference-card {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .conference-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .conference-header:hover {
+            background: #fafafa;
+        }
+
+        .conference-info h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #333;
+        }
+
+        .conference-info p {
+            margin: 5px 0 0;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        .details-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .conference-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            background: #fcfcfc;
+            border-top: 0 solid #eee;
+        }
+
+        .conference-details.open {
+            max-height: 500px;
+            border-top: 1px solid #eee;
+            padding: 20px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .detail-item strong {
+            color: var(--primary);
+        }
+
+        .register-now {
+            margin-top: 15px;
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .arrow {
+            transition: transform 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👔 Upcoming Conferences</h1>
+
+    <div class="conference-card">
+        <div class="conference-header" onclick="toggleDetails('techpulse', this)">
+            <div class="conference-info">
+                <h2>Tech Pulse 2026</h2>
+                <p>Technology & Innovation Summit</p>
+            </div>
+            <button class="details-btn">
+                Details <span class="arrow">▼</span>
+            </button>
+        </div>
+        <div id="techpulse" class="conference-details">
+            <div class="details-grid">
+                <div class="detail-item"><strong>Date:</strong> March 18, 2026</div>
+                <div class="detail-item"><strong>Venue:</strong> City Convention Center</div>
+                <div class="detail-item"><strong>Duration:</strong> 2 Days</div>
+                <div class="detail-item"><strong>Starting Price:</strong> $199</div>
+            </div>
+            <p>Join industry leaders and innovators discussing AI, Web3, and the future of digital transformation.</p>
+            <a href="booking.html" class="register-now">Register Now</a>
+        </div>
+    </div>
+
+    <div class="conference-card">
+        <div class="conference-header" onclick="toggleDetails('aisummit', this)">
+            <div class="conference-info">
+                <h2>Future of AI Summit</h2>
+                <p>Artificial Intelligence & Machine Learning</p>
+            </div>
+            <button class="details-btn">
+                Details <span class="arrow">▼</span>
+            </button>
+        </div>
+        <div id="aisummit" class="conference-details">
+            <div class="details-grid">
+                <div class="detail-item"><strong>Date:</strong> May 05, 2026</div>
+                <div class="detail-item"><strong>Venue:</strong> Grand Tech Hall</div>
+                <div class="detail-item"><strong>Duration:</strong> 1 Day</div>
+                <div class="detail-item"><strong>Starting Price:</strong> $149</div>
+            </div>
+            <p>A deep dive into cutting-edge AI research, automation, and real-world applications.</p>
+            <a href="booking.html" class="register-now">Register Now</a>
+        </div>
+    </div>
+
+    <div class="conference-card">
+        <div class="conference-header" onclick="toggleDetails('designux', this)">
+            <div class="conference-info">
+                <h2>Design & UX Workshop</h2>
+                <p>Creative Design & User Experience</p>
+            </div>
+            <button class="details-btn">
+                Details <span class="arrow">▼</span>
+            </button>
+        </div>
+        <div id="designux" class="conference-details">
+            <div class="details-grid">
+                <div class="detail-item"><strong>Date:</strong> July 10, 2026</div>
+                <div class="detail-item"><strong>Venue:</strong> Creative Hub Arena</div>
+                <div class="detail-item"><strong>Duration:</strong> 1 Day</div>
+                <div class="detail-item"><strong>Starting Price:</strong> $99</div>
+            </div>
+            <p>Hands-on sessions on UI/UX design, prototyping, and product strategy.</p>
+            <a href="booking.html" class="register-now">Register Now</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function toggleDetails(id, header) {
+        const details = document.getElementById(id);
+        const arrow = header.querySelector('.arrow');
+
+        details.classList.toggle('open');
+
+        if (details.classList.contains('open')) {
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+</script>
+
+</body>
+</html>

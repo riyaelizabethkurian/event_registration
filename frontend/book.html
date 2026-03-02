@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Ticket Booking</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 50px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        
+        .tab-container { margin-bottom: 25px; display: flex; gap: 10px; justify-content: center; }
+        
+        button.tab-btn { padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; background: #e0e0e0; color: #555; }
+        button.tab-btn.active { background: #6c5ce7; color: white; }
+
+        .form-section { display: none; text-align: left; animation: fadeIn 0.4s; }
+        .form-section.active { display: block; }
+
+        label { display: block; margin: 10px 0 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
+        .submit-btn { width: 100%; background: #00b894; color: white; border: none; padding: 15px; margin-top: 20px; border-radius: 6px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .submit-btn:hover { background: #00967a; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Book Your Tickets</h2>
+    <p>Select your event type to continue</p>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="showForm('concert', this)">🎸 Concert</button>
+        <button class="tab-btn" onclick="showForm('conference', this)">👔 Conference</button>
+    </div>
+
+    <div id="concert" class="form-section active">
+        <h3>Concert Registration</h3>
+        <label>Artist/Band</label>
+        <select>
+            <option>The Midnight Echoes</option>
+            <option>Neon Horizons</option>
+            <option>Starlight Symphony</option>
+        </select>
+        <label>Seating Section</label>
+        <select>
+            <option>VIP Pit ($150)</option>
+            <option>General Admission ($75)</option>
+            <option>Balcony ($50)</option>
+        </select>
+        <label>Number of Tickets</label>
+        <input type="number" min="1" value="1">
+        <button class="submit-btn">Reserve Concert Seats</button>
+    </div>
+
+    <div id="conference" class="form-section">
+        <h3>Conference Registration</h3>
+        <label>Conference Name</label>
+        <select>
+            <option>Tech Pulse 2026</option>
+            <option>Future of AI Summit</option>
+            <option>Design & UX Workshop</option>
+        </select>
+        <label>Pass Type</label>
+        <select>
+            <option>Full Access Pass ($299)</option>
+            <option>Workshop Only ($149)</option>
+            <option>Virtual Stream ($49)</option>
+        </select>
+        <label>Attendee Email</label>
+        <input type="email" placeholder="name@company.com">
+        <button class="submit-btn" style="background-color: #0984e3;">Register for Conference</button>
+    </div>
+</div>
+
+<script>
+    function showForm(formId, btn) {
+        // Hide all forms
+        document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
+        // Deactivate all buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        // Show selected form and activate button
+        document.getElementById(formId).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
